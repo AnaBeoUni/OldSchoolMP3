@@ -1,0 +1,109 @@
+body {
+  background: #000;
+  font-family: "Courier New", monospace;
+  color: #00ff99;
+  margin: 0;
+}
+
+/* FLOATING WINDOW */
+.player {
+  position: absolute;
+  width: 320px;
+  top: 100px;
+  left: 100px;
+
+  background: rgba(0, 0, 0, 0.95);
+  border: 2px solid #00ff99;
+  box-shadow: 0 0 15px #00ff99;
+
+  padding: 10px;
+  cursor: grab;
+  user-select: none;
+}
+
+/* Responsive "column widths" just for the player wrapper */
+.player-col {
+  /* default (mobile first) */
+  width: calc(100vw - 24px);
+  max-width: 320px;      /* keep it small like a widget */
+  min-width: 220px;
+}
+
+/* small screens and up */
+@media (min-width: 576px) {
+  .player-col {
+    width: 280px;
+  }
+}
+
+/* medium screens and up */
+@media (min-width: 768px) {
+  .player-col {
+    width: 320px;
+  }
+}
+
+/* large screens and up */
+@media (min-width: 992px) {
+  .player-col {
+    width: 145rem;
+  }
+}
+
+/* HEADER (DRAG BAR) */
+.header {
+  background: #003322;
+  padding: 5px;
+  cursor: grab;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 0 0 5px #00ff99;
+}
+
+/* BUTTONS */
+button {
+  background: black;
+  color: #00ff99;
+  border: 1px solid #00ff99;
+  margin: 3px;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-family: "Courier New", monospace;
+}
+
+button:hover {
+  background: #00ff99;
+  color: black;
+  box-shadow: 0 0 10px #00ff99;
+}
+
+/* SONG LIST */
+.songs {
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: 10px;
+  border-top: 1px dashed #00ff99;
+}
+
+.song {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+/* NOW PLAYING */
+.now-playing {
+  margin-top: 8px;
+  font-size: 12px;
+  text-shadow: 0 0 6px #00ff99;
+}
+
+/* GLOW EFFECT */
+.glow {
+  animation: glow 1.5s infinite alternate;
+}
+
+@keyframes glow {
+  from { text-shadow: 0 0 5px #00ff99; }
+  to { text-shadow: 0 0 15px #00ff99; }
+}
