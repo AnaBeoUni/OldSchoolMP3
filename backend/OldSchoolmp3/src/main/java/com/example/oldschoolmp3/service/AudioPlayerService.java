@@ -18,6 +18,7 @@ import java.util.function.Supplier;
 
 @Service
 public class AudioPlayerService {
+    private static final long FX_THREAD_TIMEOUT_MS = 250L;
 
     private MediaPlayer player;
     private Integer currentSongIndex = 0;
@@ -118,7 +119,7 @@ public class AudioPlayerService {
     }
 
     public PlayerStatus getStatus() {
-        return readOnFxThread(this::buildStatusSnapshot);
+        return readOnFxThread(this::buildStatusSnapshot, this::buildFallbackStatus);
     }
 
     private PlayerStatus buildStatusSnapshot() {
@@ -154,7 +155,18 @@ public class AudioPlayerService {
         return new PlayerStatus(songIndex, isPaused, isPlaying, positionMs, durationMs, song);
     }
 
-    private <T> T readOnFxThread(Supplier<T> supplier) {
+    private PlayerStatus buildFallbackStatus() {
+        int songIndex = -1;
+        Song song = null;
+        if (currentSongIndex >= 0 && currentSongIndex < songs.size()) {
+            songIndex = currentSongIndex;
+            song = songs.get(currentSongIndex);
+        }
+
+        return new PlayerStatus(songIndex, false, false, 0L, 0L, song);
+    }
+
+    private <T> T readOnFxThread(Supplier<T> supplier, Supplier<T> fallbackSupplier) {
         if (Platform.isFxApplicationThread()) {
             return supplier.get();
         }
@@ -168,12 +180,12 @@ public class AudioPlayerService {
                     future.completeExceptionally(ex);
                 }
             });
-            return future.get(250, TimeUnit.MILLISECONDS);
+            return future.get(FX_THREAD_TIMEOUT_MS, TimeUnit.MILLISECONDS);
         } catch (IllegalStateException | InterruptedException | ExecutionException | TimeoutException ex) {
             if (ex instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
             }
-            return supplier.get();
+            return fallbackSupplier.get();
         }
     }
 

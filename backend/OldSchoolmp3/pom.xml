@@ -27,7 +27,7 @@
         <url/>
     </scm>
     <properties>
-        <!-- Uses Java 17 for current CI/runtime compatibility -->
+        <!-- Uses Java 17 because the current GitHub runner image in this repo provides JDK 17 -->
         <java.version>17</java.version>
     </properties>
     <dependencies>
