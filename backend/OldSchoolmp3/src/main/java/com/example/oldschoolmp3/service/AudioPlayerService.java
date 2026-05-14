@@ -168,7 +168,7 @@ public class AudioPlayerService {
                     future.completeExceptionally(ex);
                 }
             });
-            return future.get(1, TimeUnit.SECONDS);
+            return future.get(250, TimeUnit.MILLISECONDS);
         } catch (IllegalStateException | InterruptedException | ExecutionException | TimeoutException ex) {
             if (ex instanceof InterruptedException) {
                 Thread.currentThread().interrupt();

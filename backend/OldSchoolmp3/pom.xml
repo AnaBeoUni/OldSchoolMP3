@@ -27,6 +27,7 @@
         <url/>
     </scm>
     <properties>
+        <!-- Uses Java 17 for current CI/runtime compatibility -->
         <java.version>17</java.version>
     </properties>
     <dependencies>
