@@ -1,5 +1,6 @@
 package com.example.oldschoolmp3.controller;
 
+import com.example.oldschoolmp3.model.PlayerStatus;
 import com.example.oldschoolmp3.model.Song;
 import org.springframework.web.bind.annotation.*;
 import com.example.oldschoolmp3.service.AudioPlayerService;
@@ -86,12 +87,11 @@ public class PlayerController {
     }
     @GetMapping("/now-playing")
     public Song nowPlaying() {
-        int idx = audioPlayerService.currentlyPlayingIndex();
-        if (idx < 0) return null;
+        return audioPlayerService.getStatus().getSong();
+    }
 
-        List<Song> songs = audioPlayerService.getSongs();
-        if (idx >= songs.size()) return null;
-
-        return songs.get(idx);
+    @GetMapping("/status")
+    public PlayerStatus status() {
+        return audioPlayerService.getStatus();
     }
 }
