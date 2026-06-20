@@ -10,8 +10,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Song {
-    String title;
-    String path;
+    private String id;
+    private String title;
+    private String path;
 
     @Override
     public String toString() {

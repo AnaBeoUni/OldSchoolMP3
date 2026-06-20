@@ -1,111 +1,154 @@
 package com.example.oldschoolmp3.service;
+
+import com.example.oldschoolmp3.model.Playlist;
+import com.example.oldschoolmp3.model.Song;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import lombok.Getter;
-import com.example.oldschoolmp3.model.Song;
+import lombok.Setter;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class AudioPlayerService {
 
     private MediaPlayer player;
-    private Integer currentSongIndex = 0;
+
+    private Song currentSong;
+
     @Getter
-    private List<Song> songs;
+    private List<Song> songs = new ArrayList<>();
+
+    @Getter
+    private final List<Playlist> playlists;
+
+    private final MusicLibraryService libraryService;
+
+    private boolean shuffle = false;
+
+    @Setter
+    private boolean loop = false;
 
     @Getter
     private boolean autoPlay = true;
 
-    //bean injects itself here and now audioplayerservoce uses musiclibraryservice!!
+    private List<Song> shuffleQueue = new ArrayList<>();
+    private int shuffleIndex = 0;
+
     public AudioPlayerService(MusicLibraryService libraryService) {
-        System.out.println("Songs loaded!");
+        this.libraryService = libraryService;
+        this.playlists = libraryService.loadPlaylists();
+        reloadSongs();
+    }
 
+    // ---------------- LOAD ----------------
+    public void reloadSongs() {
         this.songs = libraryService.loadAllSongs();
+
+        if (shuffle) {
+            generateShuffleQueue();
+        }
     }
 
-    public void playSong(String songPath){
-
-            try {
-                stopSong();
-                //file objektas gaunamas per path
-                File file = new File(songPath);
-
-                Media media = new Media(file.toURI().toString());
-
-                player = new MediaPlayer(media);
-                System.out.println("Playing song: "+songs.get(currentSongIndex).getTitle());
-                player.play();
-
-                player.setOnEndOfMedia(() -> {
-                    if(autoPlay){
-                        nextSong();
-                    }
-                });
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+    // ---------------- SHUFFLE ----------------
+    private void generateShuffleQueue() {
+        shuffleQueue = new ArrayList<>(songs);
+        Collections.shuffle(shuffleQueue);
+        shuffleIndex = 0;
     }
 
-    public String currentlyPlaying(){
-        return "Currently playing: "+songs.get(currentSongIndex).getTitle();
-    }
-    public int currentlyPlayingIndex(){
-        return currentSongIndex;
+    public void setShuffle(boolean shuffle) {
+        this.shuffle = shuffle;
+        if (shuffle) generateShuffleQueue();
     }
 
     public void setAutoPlay(boolean autoPlay) {
         this.autoPlay = autoPlay;
-        System.out.println("AutoPlay: "+autoPlay);
     }
 
-    public void playSongAtIndex(int index){
-        if(index < 0 || index >= songs.size()){
+    // ---------------- PLAY BY INDEX (kept for compatibility) ----------------
+    public void playSongAtIndex(int index) {
+        if (songs.isEmpty()) return;
+        if (index < 0 || index >= songs.size()) return;
+
+        playSong(songs.get(index));
+    }
+
+    // ---------------- CORE PLAY ----------------
+    private void playSong(Song song) {
+
+        try {
+            stopSong();
+
+            currentSong = song;
+
+            File file = new File(song.getPath());
+            Media media = new Media(file.toURI().toString());
+
+            player = new MediaPlayer(media);
+            player.play();
+
+            player.setOnEndOfMedia(() -> {
+                if (loop) {
+                    playSong(song);
+                } else if (autoPlay) {
+                    nextSong();
+                }
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ---------------- NEXT ----------------
+    public void nextSong() {
+
+        if (songs.isEmpty()) return;
+
+        if (shuffle) {
+            if (shuffleIndex >= shuffleQueue.size()) generateShuffleQueue();
+            playSong(shuffleQueue.get(shuffleIndex++));
             return;
         }
-        this.currentSongIndex = index;
-        this.playSong(songs.get(currentSongIndex).getPath());
+
+        int idx = songs.indexOf(currentSong);
+        idx = (idx + 1) % songs.size();
+
+        playSong(songs.get(idx));
     }
 
-    public void nextSong(){
-        currentSongIndex++;
-        if(currentSongIndex >= songs.size()){
-            currentSongIndex = 0;
-        }
-        this.playSongAtIndex(currentSongIndex);
+    // ---------------- PREVIOUS ----------------
+    public void previousSong() {
+
+        if (songs.isEmpty()) return;
+
+        int idx = songs.indexOf(currentSong);
+        idx = (idx - 1 + songs.size()) % songs.size();
+
+        playSong(songs.get(idx));
     }
 
-    public void previousSong(){
-        currentSongIndex--;
-        if(currentSongIndex < 0){
-            currentSongIndex = songs.size()-1;
-        }
-        this.playSongAtIndex(currentSongIndex);
+    // ---------------- STATE ----------------
+    public Song getCurrentSong() {
+        return currentSong;
     }
 
-    public void pauseSong(){
-        if(player != null){
-            player.pause();
-        }
-    }
-    public void resumeSong(){
-        if(player != null){
-            player.play();
-        }
+    public int currentlyPlayingIndex() {
+        return songs.indexOf(currentSong);
     }
 
-    public void stopSong(){
-        if(player != null){
-            player.stop();
-        }
-
+    public void pauseSong() {
+        if (player != null) player.pause();
     }
 
-    public void deleteSong(int index) {
-        //fakin lol
-        songs.remove(index);
+    public void resumeSong() {
+        if (player != null) player.play();
+    }
+
+    public void stopSong() {
+        if (player != null) player.stop();
     }
 }

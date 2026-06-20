@@ -5,9 +5,11 @@
 
 # Maven
 target/
+Songs/
 
 # Node
 node_modules/
+
 
 # Logs
 npm-debug.log
